@@ -26,14 +26,14 @@ def obtener_probabilidad_condicional(Y, y_valor, e, red):
     y_valor = convertir_valor(y_valor, red['valores'][Y])
 
     try:
-        return red['CPT'][Y][valores_padres][y_valor]
+        return red['TDP'][Y][valores_padres][y_valor]
     except KeyError:
-        print(f"Error para acceder a la CPT:")
+        print(f"Error para acceder a la TDP:")
         print(f"  Variable: {Y}")
         print(f"  Padres esperados: {padres_Y}")
         print(f"  Valores de padres dados: {valores_padres}")
         print(f"  Valor consultado: {y_valor}")
-        print(f"  CPT disponible: {red['CPT'][Y]}")
+        print(f"  TDP disponible: {red['TDP'][Y]}")
         raise ValueError(f"No se encontró probabilidad para {Y}={y_valor} con padres {valores_padres}")
 
 # El resto del archivo se queda igual...
@@ -73,7 +73,7 @@ def crear_red_bayesiana():
         'variables': [],
         'valores': {},
         'padres': {},
-        'CPT': {}
+        'TDP': {}
     }
 
 def agregar_variable(red, nombre, valores_posibles):
@@ -81,7 +81,7 @@ def agregar_variable(red, nombre, valores_posibles):
         red['variables'].append(nombre)
         red['valores'][nombre] = valores_posibles
         red['padres'][nombre] = []
-        red['CPT'][nombre] = {}
+        red['TDP'][nombre] = {}
 
 def establecer_padres(red, variable, padres):
     if variable not in red['variables']:
@@ -90,7 +90,7 @@ def establecer_padres(red, variable, padres):
         if padre not in red['variables']:
             return
     red['padres'][variable] = padres
-    red['CPT'][variable] = {}
+    red['TDP'][variable] = {}
 
 def establecer_probabilidad(red, variable, valores_padres, probabilidades):
     if variable not in red['variables']:
@@ -116,4 +116,4 @@ def establecer_probabilidad(red, variable, valores_padres, probabilidades):
     if abs(sum(probabilidades_convertidas.values()) - 1.0) > 0.001:
         return
 
-    red['CPT'][variable][valores_padres_convertidos] = probabilidades_convertidas
+    red['TDP'][variable][valores_padres_convertidos] = probabilidades_convertidas
