@@ -1,3 +1,5 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
 
 def convertir_valor(valor, valores_posibles):
     """
@@ -135,6 +137,32 @@ def establecer_probabilidad(red, variable, valores_padres, probabilidades):
     
     red['TDP'][variable][valores_padres_convertidos] = probabilidades_convertidas
     # print(f"DEBUG: Guardado {variable} -> {valores_padres_convertidos}: {probabilidades_convertidas}")
+
+def eliminar_variable(red, nombre):
+    if nombre in red['variables']:
+        red['variables'].remove(nombre)
+        del red['valores'][nombre]
+        del red['padres'][nombre]
+        del red['TDP'][nombre]
+        
+        # Eliminar de padres de otras variables
+        for var in red['variables']:
+            if nombre in red['padres'][var]:
+                red['padres'][var].remove(nombre)
+                # También eliminar entradas en TDP relacionadas
+                nuevas_tdp = {}
+                for key, prob_dict in red['TDP'][var].items():
+                    # key es una tupla de valores para los padres
+                    idx = red['padres'][var].index(nombre) if nombre in red['padres'][var] else -1
+                    if idx != -1:
+                        nueva_key = key[:idx] + key[idx+1:]
+                    else:
+                        nueva_key = key
+                    nuevas_tdp[nueva_key] = prob_dict
+                red['TDP'][var] = nuevas_tdp
+
+def obtener_nodos(red):
+    return red['variables']
 
 
 # ==========================================
