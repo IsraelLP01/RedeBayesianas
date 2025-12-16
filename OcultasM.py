@@ -39,65 +39,102 @@ def build_matrices(model):
             B[i, k] = model["emissions"].get((s, sym), 0.0)
     return states, symbols, pi, A, B
 
-def forward_algorithm(obs_seq, states, start_prob, trans_prob, emit_prob, symbols):
-    N = len(states)
-    T = len(obs_seq)
+def forward_backward(observaciones, pi, A, B):
+    """Implementación del algoritmo Forward-Backward"""
+    T = len(observaciones)
+    N = len(pi)
+
+    # Algoritmo Forward
     alpha = np.zeros((T, N))
-    
+    c = np.zeros(T)  # Factores de escala
+
     # Inicialización
     try:
-        idx_sym0 = symbols.index(obs_seq[0])
-    except ValueError:
-        return 0.0, alpha # Símbolo no observado
-        
-    for i in range(N):
-        alpha[0, i] = start_prob[i] * emit_prob[i, idx_sym0]
-    
-    # Recurrencia
+        alpha[0] = pi * B[:, observaciones[0]]
+        c[0] = 1.0 / np.sum(alpha[0])
+        alpha[0] *= c[0]
+    except ZeroDivisionError:
+        # Manejo básico si la probabilidad inicial de la primera observación es 0
+        return np.zeros((T, N)), np.zeros((T, N)), np.zeros((T, N)), np.zeros((T-1, N, N)), np.zeros(T)
+
+    # Recursión
     for t in range(1, T):
-        try:
-            idx_sym = symbols.index(obs_seq[t])
-        except ValueError:
-            return 0.0, alpha
-            
         for j in range(N):
-            suma = sum(alpha[t-1, i] * trans_prob[i, j] for i in range(N))
-            alpha[t, j] = suma * emit_prob[j, idx_sym]
-    
-    prob = np.sum(alpha[T-1, :])
-    return prob, alpha
+            alpha[t, j] = B[j, observaciones[t]] * np.sum(alpha[t-1] * A[:, j])
+        
+        suma = np.sum(alpha[t])
+        if suma == 0: 
+            c[t] = 1.0 # Evitar div por cero si la prob se vuelve nula
+        else:
+            c[t] = 1.0 / suma
+            
+        alpha[t] *= c[t]
 
-def backward_algorithm(obs_seq, states, start_prob, trans_prob, emit_prob, symbols):
-    N = len(states)
-    T = len(obs_seq)
+    # Algoritmo Backward
     beta = np.zeros((T, N))
-    
-    # Inicialización
-    beta[T-1, :] = 1
-    
-    # Recurrencia
-    for t in reversed(range(T-1)):
-        try:
-            idx_sym = symbols.index(obs_seq[t+1])
-        except ValueError:
-            return 0.0, beta
-            
-        for i in range(N):
-            suma = sum(trans_prob[i, j] * emit_prob[j, idx_sym] * beta[t+1, j] for j in range(N))
-            beta[t, i] = suma
-            
-    # Terminación
-    try:
-        idx_sym0 = symbols.index(obs_seq[0])
-        prob = sum(start_prob[i] * emit_prob[i, idx_sym0] * beta[0, i] for i in range(N))
-    except ValueError:
-        prob = 0.0
 
-    return prob, beta
+    # Inicialización
+    beta[T-1] = 1.0
+    beta[T-1] *= c[T-1]
+
+    # Recursión hacia atrás
+    for t in range(T-2, -1, -1):
+        for i in range(N):
+            beta[t, i] = np.sum(A[i, :] * B[:, observaciones[t+1]] * beta[t+1, :])
+        beta[t] *= c[t]
+
+    # Probabilidades suavizadas
+    gamma = np.zeros((T, N))
+    for t in range(T):
+        gamma[t] = alpha[t] * beta[t]
+        denom = np.sum(gamma[t])
+        if denom != 0:
+            gamma[t] /= denom
+
+    # Probabilidades de transición
+    xi = np.zeros((T-1, N, N))
+    for t in range(T-1):
+        # Calcular denominador común para xi[t]
+        # P(O | model) approx 1/prod(c) ? No, xi se normaliza localmente o por P(O)
+        # Standard formula: xi_t(i,j) = (alpha_t(i) * a_ij * b_j(O_t+1) * beta_t+1(j)) / P(O|lambda)
+        # Con scaling, alpha y beta están escalados.
+        # xi_t(i,j) = alpha_scaled_t(i) * a_ij * b_j(O_t+1) * beta_scaled_t+1(j) * (1/c_t+1? no)
+        # La formula directa con scaling suele ser simplemente la computada y normalizada
+       
+        # Implementación del usuario (revisada):
+        denom = np.sum(alpha[t] * np.sum(A * B[:, observaciones[t+1]] * beta[t+1], axis=1))
+        
+        for i in range(N):
+            for j in range(N):
+                xi[t, i, j] = alpha[t, i] * A[i, j] * B[j, observaciones[t+1]] * beta[t+1, j]
+                if denom != 0:
+                    xi[t, i, j] /= denom
+
+    return alpha, beta, gamma, xi, c
 
 def perform_inference(model, observations_seq):
     states, symbols, pi, A, B = build_matrices(model)
-    return forward_algorithm(observations_seq, states, pi, A, B, symbols)
+    
+    # 1. Convertir observaciones (strings) a índices
+    try:
+        obs_indices = [symbols.index(o) for o in observations_seq]
+    except ValueError as e:
+        print(f"Error: Símbolo no encontrado en el modelo. {e}")
+        return 0.0, np.zeros((len(observations_seq), len(states)))
+
+    # 2. Ejecutar Forward-Backward optimizado
+    alpha, beta, gamma, xi, c = forward_backward(obs_indices, pi, A, B)
+    
+    # 3. Calcular Probabilidad Total P(O|lambda)
+    # Con scaling: log P(O|lambda) = - sum(log(c_t))
+    # Prob = exp(log P)
+    # Nota: Si la secuencia es muy larga, Prob puede ser 0 (underflow) incluso si log P es válido.
+    # Para la GUI devolvemos el valor real float, sabiendo que puede ser muy pequeño.
+    
+    log_prob = -np.sum(np.log(c + 1e-300)) # epsilon seguridad
+    prob = np.exp(log_prob)
+    
+    return prob, alpha, gamma, xi
 
 def visualizar_hmm(model):
     """
