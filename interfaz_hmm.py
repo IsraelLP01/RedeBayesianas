@@ -12,7 +12,7 @@ ventana.title("Constructor de HMM")
 ventana.geometry("600x700")
 
 # Título principal
-titulo = tk.Label(ventana, text="CONSTRUCTOR DE MODELO OCULTO DE MARKOV", font=("Arial", 16, "bold"))
+titulo = tk.Label(ventana, text="Constructor de Modelo Oculto de Markov", font=("Arial", 16, "bold"))
 titulo.pack(pady=10)
 
 # Frame principal para configuración
@@ -134,7 +134,7 @@ def actualizar_combos():
 frame_resolver = tk.Frame(ventana, bg="#f0f0f0", bd=2, relief="groove")
 frame_resolver.pack(fill="x", padx=10, pady=20)
 
-tk.Label(frame_resolver, text="RESOLVER PROBLEMA", font=("Arial", 12, "bold"), bg="#f0f0f0").pack(pady=10)
+tk.Label(frame_resolver, text="Resolver por Forward-Backward", font=("Arial", 12, "bold"), bg="#f0f0f0").pack(pady=10)
 
 tk.Label(frame_resolver, text="Ingrese Secuencia de Observaciones (separadas por comas, ej: A,B,A):", bg="#f0f0f0").pack()
 entry_seq = tk.Entry(frame_resolver, width=50)
@@ -158,7 +158,7 @@ def resolver_problema():
         prob, alpha, gamma, xi = OcultasM.perform_inference(hmm_model, observaciones)
         
         # Mostrar resultados en nueva ventana o popup
-        res_msg = f"Probabilidad de la secuencia: {prob:.4e}\n\n(Detalles técnicos en consola o expandibles si fuera necesario)"
+        res_msg = f"Probabilidad Total de la Secuencia: {prob:.4e}"
         messagebox.showinfo("Resultado", res_msg)
         
         # Opcional: Visualizar al resolver
