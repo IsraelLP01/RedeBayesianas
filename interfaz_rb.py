@@ -1,222 +1,88 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+from tkinter import ttk, messagebox
+
 import RedesBa
-import math
-import json
-import itertools
 
 #Inicialización de la red
 red = RedesBa.crear_red_bayesiana()
+global contador
+contador = 0
 
 ventana = tk.Tk()
-ventana.title("Constructor y Consultor de Red Bayesiana")
-ventana.geometry("800x950") 
+ventana.title("Proyecto Final")
+ventana.geometry("400x600")
 
-def guardar_red():
-    ruta = filedialog.asksaveasfilename(defaultextension=".json", filetypes=[("JSON files", "*.json")])
-    if ruta:
-        red_serializable = red.copy()
-        #Procesamiento especial para TDP porque JSON no acepta tuplas como llaves
-        tdp_serial = {}
-        for nodo, tablas in red['TDP'].items():
-            tdp_serial[nodo] = {str(k): v for k, v in tablas.items()}
-        red_serializable['TDP'] = tdp_serial
-        
-        with open(ruta, 'w') as f:
-            json.dump(red_serializable, f, indent=4)
-        messagebox.showinfo("Éxito", "Red guardada correctamente.")
+titulo = tk.Label(ventana, text="CONSTRUCTOR DE RED BAYESIANA")
+titulo.pack(pady=20)
 
-def cargar_red():
-    global red
-    ruta = filedialog.askopenfilename(filetypes=[("JSON files", "*.json")])
-    if ruta:
-        with open(ruta, 'r') as f:
-            datos = json.load(f)
-            #Reconstruir tuplas en TDP para recuperar datos del JSON
-            for nodo, tablas in datos['TDP'].items():
-                nuevatabla = {}
-                for k, v in tablas.items():
-                    #Convertir el string de la tupla de vuelta a tupla real
-                    tupla = tuple(eval(k)) if k != "()" else ()
-                    nuevatabla[tupla] = v
-                datos['TDP'][nodo] = nuevatabla
-            red = datos
-        actualizar_interfaz()
-        messagebox.showinfo("Éxito", "Red cargada correctamente.")
-
-marco = tk.Frame(ventana)
-marco.pack(pady=5)
-tk.Button(marco, text="Cargar Red", command=cargar_red).pack(side="left", padx=5)
-tk.Button(marco, text="Guardar Red", command=guardar_red).pack(side="left", padx=5)
-
-tk.Label(ventana, text="Nombre del nodo:").pack()
+texto1 = tk.Label(ventana, text="Ingrese nombre de nodo:")
+texto1.pack()
 nombreNodo = tk.Entry(ventana)
-nombreNodo.pack()
+nombreNodo.pack(pady=5)
 
-tk.Label(ventana, text="Padres (separados por coma):").pack()
+texto2 = tk.Label(ventana, text="Ingrese padres del nodo (separados por coma):")
+texto2.pack()
 padresNodo = tk.Entry(ventana)
-padresNodo.pack()
+padresNodo.pack(pady=10)
 
-tk.Label(ventana, text="Estados (ej: True,False):").pack()
+texto3 = tk.Label(ventana, text="Ingrese nombre de estados de nodo(separados por coma):")
+texto3.pack()
 estadosNodo = tk.Entry(ventana)
-estadosNodo.pack()
+estadosNodo.pack(pady=10)
 
-canvas = tk.Canvas(ventana, width=450, height=250, bg="white", highlightthickness=1)
-canvas.pack(pady=10)
-
-def dibujar_red():
-    canvas.delete("all")
-    nodos = RedesBa.obtener_nodos(red)
-    if not nodos:
-        canvas.create_text(225, 125, text="Agregue nodos para visualizar", fill="gray")
-        return
-    radio_red, centro_x, centro_y = 80, 225, 125
-    posiciones = {}
-    for i, nodo in enumerate(nodos):
-        angulo = 2 * math.pi * i / len(nodos)
-        posiciones[nodo] = (centro_x + radio_red * math.cos(angulo), centro_y + radio_red * math.sin(angulo))
-
-    for nodo in nodos:
-        for p in red['padres'].get(nodo, []):
-            if p in posiciones:
-                x1, y1 = posiciones[p]
-                x2, y2 = posiciones[nodo]
-                canvas.create_line(x1, y1, x2, y2, arrow=tk.LAST, fill="black")
-
-    for nodo, (x, y) in posiciones.items():
-        canvas.create_oval(x-20, y-20, x+20, y+20, fill="lightgreen", outline="black")
-        canvas.create_text(x, y, text=nodo, font=('Arial', 8, 'bold'))
-
-#Actualizar las listas de las comboboxes (o no lee los nodos agregados) y el dibujo de la red bayesiana
-def actualizar_interfaz():
-    nodos = RedesBa.obtener_nodos(red)
-    combo_nodos['values'] = nodos
-    tdpNodo['values'] = nodos
-    combo_consulta['values'] = nodos
-    dibujar_red()
 
 def agregar_nodo_boton():
+    global contador
     nombre = nombreNodo.get().strip()
     padres = [p.strip() for p in padresNodo.get().split(',') if p.strip()]
-    estados = [e.strip() for e in estadosNodo.get().split(',') if e.strip()]
-    if nombre and estados:
-        RedesBa.agregar_variable(red, nombre, estados)
-        if padres: RedesBa.establecer_padres(red, nombre, padres)
-        actualizar_interfaz()
-        [e.delete(0, tk.END) for e in [nombreNodo, padresNodo, estadosNodo]]
-
-tk.Button(ventana, text="Agregar Nodo", command=agregar_nodo_boton, bg="#4caf50", fg="white").pack(pady=5)
-
-
-#Ventana de modificacion de las probabilidades por nodo
-tk.Label(ventana, text="CONFIGURAR PROBABILIDADES", font=('Arial', 10, 'bold')).pack(pady=5)
-tdpNodo = ttk.Combobox(ventana, state="readonly")
-tdpNodo.pack()
-
-def modificar_tdp_boton():
-    nombre = tdpNodo.get()
-    if not nombre or nombre not in red['valores']:
-        messagebox.showerror("Error", "Seleccione un nodo primero.")
-        return
-    
-    v_tdp = tk.Toplevel(ventana)
-    v_tdp.title(f"TDP: {nombre}")
-    
-    padres = red['padres'].get(nombre, [])
-    estados_nodo = red['valores'].get(nombre, [])
-    
-    #Generar todas las combinaciones de estados posibles de los padres del nodo
-    dominios_padres = [red['valores'][p] for p in padres]
-    combinaciones = list(itertools.product(*dominios_padres)) if padres else [()]
-    
-    entradas = {}
     
 
-    for comb in combinaciones:
-        texto = f"Si {list(zip(padres, comb))}:" if padres else "Probabilidades base:"
-        tk.Label(v_tdp, text=texto, fg="blue").pack(pady=5)        
-        row_frame = tk.Frame(v_tdp)
-        row_frame.pack(padx=10, pady=5)
-        
-        entradas[comb] = {}
-        
-        #Recuperacion de las probabilidades ya ingresadas en caso de que existan y poder modificarlas, si no existen, se queda en
-        tdp_existente = red['TDP'].get(nombre, {}).get(comb, {})
-        
-        for est in estados_nodo:
-            tk.Label(row_frame, text=f"P({est}):").pack(side="left")
-            ent = tk.Entry(row_frame, width=8)
-            
-            previo = tdp_existente.get(est, "0.0")
-            ent.insert(0, str(previo))
-            
-            ent.pack(side="left", padx=5)
-            entradas[comb][est] = ent
+    if nombre and nombre not in RedesBa.obtener_nodos(red):
+        RedesBa.agregar_variable(red, nombre, estadosNodo.get().strip().split(','))
+        if padres:
+            RedesBa.establecer_padres(red, nombre, padres)
+        contador += 1
+        # Actualizar la combobox de nodos
+        combo_nodos['values'] = RedesBa.obtener_nodos(red)
+        if contador >= 15:
+            boton_agregar.config(state=tk.DISABLED)
+    elif nombre in RedesBa.obtener_nodos(red):
+        tk.messagebox.showerror("Error", "Nombre de nodo ya existe.")
+    else:
+        tk.messagebox.showerror("Error", "Nombre de nodo no definido.")
+    nombreNodo.delete(0, tk.END)
+    padresNodo.delete(0, tk.END)
+    estadosNodo.delete(0, tk.END)
+    combo_nodos.set("")
 
-    def guardar():
-        try:
-            for comb, est_dic in entradas.items():
-                probs = {est: float(e.get()) for est, e in est_dic.items()}
-                
-                #Validación opcional para la suma de probabilidades = 1 aunque no es obligatorio
-                if abs(sum(probs.values()) - 1.0) > 0.01:
-                    if not messagebox.askyesno("Aviso", f"Las probabilidades para {comb} no suman 1. ¿Guardar de todos modos?"):
-                        return
-                
-                RedesBa.establecer_probabilidad(red, nombre, comb, probs)
-            
-            v_tdp.destroy()
-            messagebox.showinfo("Éxito", f"TDP de '{nombre}' actualizada correctamente.")
-        except ValueError:
-            messagebox.showerror("Error", "Asegúrese de ingresar solo números decimales.")
 
-    tk.Button(v_tdp, text="Guardar Cambios", command=guardar, bg="#2196f3", fg="white", font=('Arial', 10, 'bold')).pack(pady=10)
-    nombre = tdpNodo.get()
-    if not nombre: return
+if True:
+    boton_agregar = tk.Button(ventana, text="Agregar nodo", command=agregar_nodo_boton)
+    boton_agregar.pack(pady=10)
 
-    tk.Button(v_tdp, text="Guardar", command=guardar).pack(pady=10)
-
-tk.Button(ventana, text="Abrir Editor TDP", command=modificar_tdp_boton).pack(pady=5)
-
-tk.Label(ventana, text="INFERENCIA", font=('Arial', 10, 'bold')).pack(pady=10)
-f_inf = tk.Frame(ventana)
-f_inf.pack()
-
-tk.Label(f_inf, text="Consulta (X):").grid(row=0, column=0)
-combo_consulta = ttk.Combobox(f_inf, state="readonly", width=15)
-combo_consulta.grid(row=0, column=1)
-
-tk.Label(f_inf, text="Evidencia (Nodo:Valor, ...):").grid(row=1, column=0)
-evidencia_ent = tk.Entry(f_inf, width=18)
-evidencia_ent.grid(row=1, column=1)
-
-def ejecutar_inferencia(metodo):
-    try:
-        X = combo_consulta.get()
-        evidenciacruda = evidencia_ent.get()
-        evidencia = {}
-        if evidenciacruda:
-            for item in evidenciacruda.split(','):
-                k, v = item.split(':')
-                evidencia[k.strip()] = v.strip()
-        
-        if metodo == "enum":
-            res = RedesBa.inferencia_enumeracion(X, evidencia, red)
-        else:
-            res = RedesBa.inferencia_eliminacion_variables(X, evidencia, red)
-            
-        messagebox.showinfo("Resultado", f"Distribución para {X}:\n{res}")
-    except Exception as e:
-        messagebox.showerror("Error", f"Error en inferencia: {e}")
-
-btn_frame = tk.Frame(ventana)
-btn_frame.pack(pady=5)
-tk.Button(btn_frame, text="Enumeración", command=lambda: ejecutar_inferencia("enum")).pack(side="left", padx=5)
-tk.Button(btn_frame, text="Eliminación Var", command=lambda: ejecutar_inferencia("elim")).pack(side="left", padx=5)
-
-# --- Eliminar ---
-combo_nodos = ttk.Combobox(ventana, state="readonly")
+texto3 = tk.Label(ventana, text="Eliminar nodo:")
+texto3.pack()
+combo_nodos = tk.ttk.Combobox(ventana, values=RedesBa.obtener_nodos(red), state="readonly")
 combo_nodos.pack(pady=5)
-tk.Button(ventana, text="Eliminar Nodo", command=lambda: [RedesBa.eliminar_variable(red, combo_nodos.get()), actualizar_interfaz()], fg="red").pack()
+
+def eliminar_nodo_boton():
+    global contador
+    nombre = combo_nodos.get()
+    if nombre:
+        RedesBa.eliminar_variable(red, nombre)
+        contador -= 1
+        if contador < 15:
+            boton_agregar.config(state=tk.NORMAL)
+        combo_nodos['values'] = RedesBa.obtener_nodos(red) #Actualiza lista de nodos a eliminar
+        combo_nodos.set("")
+    else:
+        tk.messagebox.showerror("Error", "Seleccione un nodo para eliminar.")
+
+boton_eliminar = tk.Button(ventana, text="Eliminar nodo", command=eliminar_nodo_boton)
+boton_eliminar.pack(pady=10)
+
+
+texto2 = tk.Label(ventana, text="Red construida:")
+texto2.pack()
 
 ventana.mainloop()
