@@ -1,0 +1,124 @@
+{
+    "variables": [
+        "Trafico Pesado",
+        "Mantenimiento Calles",
+        "Retrasos",
+        "Taxis Lentos",
+        "Combis Lentas",
+        "Llegar Tarde"
+    ],
+    "valores": {
+        "Trafico Pesado": [
+            "Si",
+            "No"
+        ],
+        "Mantenimiento Calles": [
+            "Si",
+            "No"
+        ],
+        "Retrasos": [
+            "Si",
+            "No"
+        ],
+        "Taxis Lentos": [
+            "Si",
+            "No"
+        ],
+        "Combis Lentas": [
+            "Si",
+            "No"
+        ],
+        "Llegar Tarde": [
+            "Si",
+            "No"
+        ]
+    },
+    "padres": {
+        "Trafico Pesado": [],
+        "Mantenimiento Calles": [],
+        "Retrasos": [
+            "Trafico Pesado",
+            "Mantenimiento Calles"
+        ],
+        "Taxis Lentos": [
+            "Retrasos"
+        ],
+        "Combis Lentas": [
+            "Retrasos"
+        ],
+        "Llegar Tarde": [
+            "Combis Lentas",
+            "Taxis Lentos"
+        ]
+    },
+    "TDP": {
+        "Trafico Pesado": {
+            "()": {
+                "Si": 0.3,
+                "No": 0.7
+            }
+        },
+        "Mantenimiento Calles": {
+            "()": {
+                "Si": 0.1,
+                "No": 0.9
+            }
+        },
+        "Retrasos": {
+            "('Si', 'Si')": {
+                "Si": 0.98,
+                "No": 0.02
+            },
+            "('Si', 'No')": {
+                "Si": 0.95,
+                "No": 0.05
+            },
+            "('No', 'Si')": {
+                "Si": 0.8,
+                "No": 0.2
+            },
+            "('No', 'No')": {
+                "Si": 0.01,
+                "No": 0.99
+            }
+        },
+        "Taxis Lentos": {
+            "('Si',)": {
+                "Si": 0.2,
+                "No": 0.8
+            },
+            "('No',)": {
+                "Si": 0.01,
+                "No": 0.99
+            }
+        },
+        "Combis Lentas": {
+            "('Si',)": {
+                "Si": 0.4,
+                "No": 0.6
+            },
+            "('No',)": {
+                "Si": 0.1,
+                "No": 0.9
+            }
+        },
+        "Llegar Tarde": {
+            "('Si', 'Si')": {
+                "Si": 0.95,
+                "No": 0.05
+            },
+            "('Si', 'No')": {
+                "Si": 0.8,
+                "No": 0.2
+            },
+            "('No', 'Si')": {
+                "Si": 0.8,
+                "No": 0.2
+            },
+            "('No', 'No')": {
+                "Si": 0.02,
+                "No": 0.98
+            }
+        }
+    }
+}

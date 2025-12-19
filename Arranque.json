@@ -1,0 +1,79 @@
+{
+    "variables": [
+        "Acumulador",
+        "Gasolina",
+        "Arranque",
+        "Desplazamiento"
+    ],
+    "valores": {
+        "Acumulador": [
+            "Si",
+            "No"
+        ],
+        "Gasolina": [
+            "Si",
+            "No"
+        ],
+        "Arranque": [
+            "Si",
+            "No"
+        ],
+        "Desplazamiento": [
+            "Si",
+            "No"
+        ]
+    },
+    "padres": {
+        "Acumulador": [],
+        "Gasolina": [],
+        "Arranque": [
+            "Acumulador",
+            "Gasolina"
+        ],
+        "Desplazamiento": [
+            "Arranque"
+        ]
+    },
+    "TDP": {
+        "Acumulador": {
+            "()": {
+                "Si": 0.6,
+                "No": 0.4
+            }
+        },
+        "Gasolina": {
+            "()": {
+                "Si": 0.8,
+                "No": 0.2
+            }
+        },
+        "Arranque": {
+            "('Si', 'Si')": {
+                "Si": 0.95,
+                "No": 0.05
+            },
+            "('Si', 'No')": {
+                "Si": 0.4,
+                "No": 0.6
+            },
+            "('No', 'Si')": {
+                "Si": 0.2,
+                "No": 0.8
+            },
+            "('No', 'No')": {
+                "Si": 0.05,
+                "No": 0.95
+            }
+        },
+        "Desplazamiento": {
+            "('Si',)": {
+                "Si": 0.85,
+                "No": 0.15
+            },
+            "('No',)": {
+                "Si": 0.15,
+                "No": 0.85
+            }
+        }
+    }
+}
