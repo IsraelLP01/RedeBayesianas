@@ -1,0 +1,84 @@
+{
+    "variables": [
+        "Gripe",
+        "Absceso",
+        "Fiebre",
+        "Cansancio"
+    ],
+    "valores": {
+        "Gripe": [
+            "Si",
+            "No"
+        ],
+        "Absceso": [
+            "Si",
+            "No"
+        ],
+        "Fiebre": [
+            "Alta",
+            "Baja",
+            "Nula"
+        ],
+        "Cansancio": [
+            "Si",
+            "No"
+        ]
+    },
+    "padres": {
+        "Gripe": [],
+        "Absceso": [],
+        "Fiebre": [
+            "Gripe",
+            "Absceso"
+        ],
+        "Cansancio": [
+            "Gripe"
+        ]
+    },
+    "TDP": {
+        "Gripe": {
+            "()": {
+                "Si": 0.05,
+                "No": 0.95
+            }
+        },
+        "Absceso": {
+            "()": {
+                "Si": 0.02,
+                "No": 0.98
+            }
+        },
+        "Fiebre": {
+            "('Si', 'Si')": {
+                "Alta": 0.90,
+                "Baja": 0.09,
+                "Nula": 0.01
+            },
+            "('Si', 'No')": {
+                "Alta": 0.60,
+                "Baja": 0.30,
+                "Nula": 0.10
+            },
+            "('No', 'Si')": {
+                "Alta": 0.70,
+                "Baja": 0.20,
+                "Nula": 0.10
+            },
+            "('No', 'No')": {
+                "Alta": 0.01,
+                "Baja": 0.09,
+                "Nula": 0.90
+            }
+        },
+        "Cansancio": {
+            "('Si',)": {
+                "Si": 0.80,
+                "No": 0.20
+            },
+            "('No',)": {
+                "Si": 0.10,
+                "No": 0.90
+            }
+        }
+    }
+}

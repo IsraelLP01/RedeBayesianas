@@ -1,0 +1,85 @@
+{
+    "variables": [
+        "Nublado",
+        "Rociador",
+        "Lluvia",
+        "HierbaMojada"
+    ],
+    "valores": {
+        "Nublado": [
+            "Si",
+            "No"
+        ],
+        "Rociador": [
+            "Si",
+            "No"
+        ],
+        "Lluvia": [
+            "Si",
+            "No"
+        ],
+        "HierbaMojada": [
+            "Si",
+            "No"
+        ]
+    },
+    "padres": {
+        "Nublado": [],
+        "Rociador": [
+            "Nublado"
+        ],
+        "Lluvia": [
+            "Nublado"
+        ],
+        "HierbaMojada": [
+            "Rociador",
+            "Lluvia"
+        ]
+    },
+    "TDP": {
+        "Nublado": {
+            "()": {
+                "Si": 0.5,
+                "No": 0.5
+            }
+        },
+        "Rociador": {
+            "('Si',)": {
+                "Si": 0.1,
+                "No": 0.9
+            },
+            "('No',)": {
+                "Si": 0.5,
+                "No": 0.5
+            }
+        },
+        "Lluvia": {
+            "('Si',)": {
+                "Si": 0.8,
+                "No": 0.2
+            },
+            "('No',)": {
+                "Si": 0.2,
+                "No": 0.8
+            }
+        },
+        "HierbaMojada": {
+            "('Si', 'Si')": {
+                "Si": 0.99,
+                "No": 0.01
+            },
+            "('Si', 'No')": {
+                "Si": 0.90,
+                "No": 0.10
+            },
+            "('No', 'Si')": {
+                "Si": 0.90,
+                "No": 0.10
+            },
+            "('No', 'No')": {
+                "Si": 0.00,
+                "No": 1.00
+            }
+        }
+    }
+}

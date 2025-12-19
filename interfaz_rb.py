@@ -5,7 +5,7 @@ import math
 import json
 import itertools
 
-# Inicialización de la red
+#Inicialización de la red
 red = RedesBa.crear_red_bayesiana()
 
 ventana = tk.Tk()

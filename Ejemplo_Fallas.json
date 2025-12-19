@@ -1,0 +1,97 @@
+{
+    "variables": [
+        "BateriaOK",
+        "CombustibleOK",
+        "IgnicionOK",
+        "Arranca",
+        "MedidorLleno"
+    ],
+    "valores": {
+        "BateriaOK": [
+            "Si",
+            "No"
+        ],
+        "CombustibleOK": [
+            "Si",
+            "No"
+        ],
+        "IgnicionOK": [
+            "Si",
+            "No"
+        ],
+        "Arranca": [
+            "Si",
+            "No"
+        ],
+        "MedidorLleno": [
+            "Si",
+            "No"
+        ]
+    },
+    "padres": {
+        "BateriaOK": [],
+        "CombustibleOK": [],
+        "IgnicionOK": [
+            "BateriaOK"
+        ],
+        "Arranca": [
+            "IgnicionOK",
+            "CombustibleOK"
+        ],
+        "MedidorLleno": [
+            "CombustibleOK"
+        ]
+    },
+    "TDP": {
+        "BateriaOK": {
+            "()": {
+                "Si": 0.9,
+                "No": 0.1
+            }
+        },
+        "CombustibleOK": {
+            "()": {
+                "Si": 0.9,
+                "No": 0.1
+            }
+        },
+        "IgnicionOK": {
+            "('Si',)": {
+                "Si": 0.95,
+                "No": 0.05
+            },
+            "('No',)": {
+                "Si": 0.00,
+                "No": 1.00
+            }
+        },
+        "Arranca": {
+            "('Si', 'Si')": {
+                "Si": 0.99,
+                "No": 0.01
+            },
+            "('Si', 'No')": {
+                "Si": 0.0,
+                "No": 1.0
+            },
+            "('No', 'Si')": {
+                "Si": 0.0,
+                "No": 1.0
+            },
+            "('No', 'No')": {
+                "Si": 0.0,
+                "No": 1.0
+            }
+        },
+        "MedidorLleno": {
+            "('Si',)": {
+                "Si": 0.98,
+                "No": 0.02
+            },
+            "('No',)": {
+                "Si": 0.05,
+                "No": 0.95
+            }
+        }
+    }
+}

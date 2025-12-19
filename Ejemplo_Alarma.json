@@ -1,0 +1,97 @@
+{
+    "variables": [
+        "Robo",
+        "Terremoto",
+        "Alarma",
+        "JuanLlama",
+        "MariaLlama"
+    ],
+    "valores": {
+        "Robo": [
+            "Si",
+            "No"
+        ],
+        "Terremoto": [
+            "Si",
+            "No"
+        ],
+        "Alarma": [
+            "Si",
+            "No"
+        ],
+        "JuanLlama": [
+            "Si",
+            "No"
+        ],
+        "MariaLlama": [
+            "Si",
+            "No"
+        ]
+    },
+    "padres": {
+        "Robo": [],
+        "Terremoto": [],
+        "Alarma": [
+            "Robo",
+            "Terremoto"
+        ],
+        "JuanLlama": [
+            "Alarma"
+        ],
+        "MariaLlama": [
+            "Alarma"
+        ]
+    },
+    "TDP": {
+        "Robo": {
+            "()": {
+                "Si": 0.001,
+                "No": 0.999
+            }
+        },
+        "Terremoto": {
+            "()": {
+                "Si": 0.002,
+                "No": 0.998
+            }
+        },
+        "Alarma": {
+            "('Si', 'Si')": {
+                "Si": 0.95,
+                "No": 0.05
+            },
+            "('Si', 'No')": {
+                "Si": 0.94,
+                "No": 0.06
+            },
+            "('No', 'Si')": {
+                "Si": 0.29,
+                "No": 0.71
+            },
+            "('No', 'No')": {
+                "Si": 0.001,
+                "No": 0.999
+            }
+        },
+        "JuanLlama": {
+            "('Si',)": {
+                "Si": 0.90,
+                "No": 0.10
+            },
+            "('No',)": {
+                "Si": 0.05,
+                "No": 0.95
+            }
+        },
+        "MariaLlama": {
+            "('Si',)": {
+                "Si": 0.70,
+                "No": 0.30
+            },
+            "('No',)": {
+                "Si": 0.01,
+                "No": 0.99
+            }
+        }
+    }
+}
