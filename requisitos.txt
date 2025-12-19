@@ -1,0 +1,4 @@
+matplotlib
+networkx
+numpy
+# tkinter (generalmente incluido con Python, en Linux puede requerir sudo apt-get install python3-tk)
